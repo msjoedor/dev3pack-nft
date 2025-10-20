@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dev3Pack NFT - The Coolest Bootcamp Project</title>
-    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -419,7 +419,23 @@
         }
         
         // Initialize when page loads
-        window.addEventListener('load', init);
+        // Wait for ethers to load
+        function waitForEthers() {
+            if (typeof ethers !== 'undefined') {
+                init();
+            } else {
+                setTimeout(waitForEthers, 100);
+            }
+        }
+        
+        window.addEventListener('load', waitForEthers);
+        
+        // Handle script loading errors
+        window.addEventListener('error', function(e) {
+            if (e.target.tagName === 'SCRIPT') {
+                showStatus("Error loading ethers.js library. Please refresh the page.", "error");
+            }
+        });
     </script>
 </body>
 </html>
