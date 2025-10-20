@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dev3Pack NFT - The Coolest Bootcamp Project</title>
-    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -419,21 +419,47 @@
         }
         
         // Initialize when page loads
-        // Wait for ethers to load
+        // Wait for ethers to load with timeout
+        let ethersLoadAttempts = 0;
+        const maxAttempts = 50; // 5 seconds max wait
+        
         function waitForEthers() {
+            ethersLoadAttempts++;
             if (typeof ethers !== 'undefined') {
+                console.log("Ethers.js loaded successfully!");
                 init();
-            } else {
+            } else if (ethersLoadAttempts < maxAttempts) {
                 setTimeout(waitForEthers, 100);
+            } else {
+                console.error("Ethers.js failed to load after 5 seconds");
+                showStatus("Error: ethers.js library failed to load. Please refresh the page.", "error");
+                // Try alternative CDN as fallback
+                loadEthersFallback();
             }
+        }
+        
+        function loadEthersFallback() {
+            console.log("Trying fallback CDN...");
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js';
+            script.onload = function() {
+                console.log("Fallback ethers.js loaded!");
+                init();
+            };
+            script.onerror = function() {
+                showStatus("Error: Unable to load ethers.js from any CDN. Please check your internet connection.", "error");
+            };
+            document.head.appendChild(script);
         }
         
         window.addEventListener('load', waitForEthers);
         
         // Handle script loading errors
         window.addEventListener('error', function(e) {
-            if (e.target.tagName === 'SCRIPT') {
-                showStatus("Error loading ethers.js library. Please refresh the page.", "error");
+            if (e.target.tagName === 'SCRIPT' && e.target.src.includes('ethers')) {
+                console.error("Ethers.js script failed to load:", e.target.src);
+                showStatus("Error loading ethers.js library. Trying fallback...", "error");
+                loadEthersFallback();
             }
         });
     </script>
