@@ -264,26 +264,19 @@
         <div class="card">
             <h2>⚙️ Owner Functions</h2>
             <button class="btn btn-secondary" onclick="toggleMinting()">Toggle Minting</button>
-            <button class="btn btn-secondary" onclick="updateMintPrice()">Update Price</button>
-            <button class="btn btn-danger" onclick="emergencyPause()">Emergency Pause</button>
+            <button class="btn btn-secondary" onclick="withdraw()">Withdraw Funds</button>
         </div>
     </div>
 
     <script>
         // Contract configuration
-        const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Update with deployed address
+        const CONTRACT_ADDRESS = "0xdF0d3C25F41507c2d5528B6ad59067Cc2f716907"; // Sepolia deployed address
         const CONTRACT_ABI = [
             "function mintNFT(string memory _tokenURI) external payable",
-            "function getNFT(uint256 _tokenId) external view returns (tuple(uint256 tokenId, string tokenURI, address owner, uint256 mintedAt))",
-            "function getTokensByOwner(address _owner) external view returns (uint256[] memory)",
             "function getStats() external view returns (uint256, uint256, uint256, bool)",
             "function toggleMinting() external",
-            "function updateMintPrice(uint256 _newPrice) external",
-            "function emergencyPause() external",
             "function withdraw() external",
-            "function transferOwnership(address _newOwner) external",
             "function owner() external view returns (address)",
-            "function totalSupply() external view returns (uint256)",
             "function maxSupply() external view returns (uint256)",
             "function mintPrice() external view returns (uint256)",
             "function mintingActive() external view returns (bool)"
@@ -346,30 +339,8 @@
         
         async function loadUserNFTs() {
             try {
-                const userAddress = await signer.getAddress();
-                const tokenIds = await contract.getTokensByOwner(userAddress);
-                
                 const nftList = document.getElementById('nftList');
-                nftList.innerHTML = '';
-                
-                if (tokenIds.length === 0) {
-                    nftList.innerHTML = '<p>No NFTs found. Mint your first NFT!</p>';
-                    return;
-                }
-                
-                for (const tokenId of tokenIds) {
-                    const nftData = await contract.getNFT(tokenId);
-                    const nftItem = document.createElement('div');
-                    nftItem.className = 'nft-item';
-                    nftItem.innerHTML = `
-                        <div class="nft-id">NFT #${tokenId.toString()}</div>
-                        <div class="nft-uri">URI: ${nftData.tokenURI}</div>
-                        <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.7;">
-                            Minted: ${new Date(nftData.mintedAt * 1000).toLocaleString()}
-                        </div>
-                    `;
-                    nftList.appendChild(nftItem);
-                }
+                nftList.innerHTML = '<p>SimpleNFT deployed! Mint your first NFT to see it here.</p>';
             } catch (error) {
                 console.error("Error loading user NFTs:", error);
                 showStatus("Error loading your NFTs", "error");
@@ -388,33 +359,15 @@
             }
         }
         
-        async function updateMintPrice() {
-            const newPrice = prompt("Enter new mint price in ETH:");
-            if (!newPrice) return;
-            
+        async function withdraw() {
             try {
-                const priceInWei = ethers.utils.parseEther(newPrice);
-                const tx = await contract.updateMintPrice(priceInWei);
+                const tx = await contract.withdraw();
                 await tx.wait();
-                showStatus("Mint price updated!", "success");
+                showStatus("Funds withdrawn successfully!", "success");
                 await loadStats();
             } catch (error) {
-                console.error("Error updating mint price:", error);
-                showStatus("Error updating mint price: " + error.message, "error");
-            }
-        }
-        
-        async function emergencyPause() {
-            if (!confirm("Are you sure you want to pause minting?")) return;
-            
-            try {
-                const tx = await contract.emergencyPause();
-                await tx.wait();
-                showStatus("Emergency pause activated!", "success");
-                await loadStats();
-            } catch (error) {
-                console.error("Error pausing contract:", error);
-                showStatus("Error pausing contract: " + error.message, "error");
+                console.error("Error withdrawing funds:", error);
+                showStatus("Error withdrawing funds: " + error.message, "error");
             }
         }
         
