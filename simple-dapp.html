@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev3Pack NFT - Simple Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            color: #5a4a6a;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 182, 193, 0.3);
+            box-shadow: 0 8px 32px rgba(255, 182, 193, 0.2);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef, #ff9a9e);
+            color: #5a4a6a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 182, 193, 0.5);
+            background: linear-gradient(45deg, #ffb3ba, #fecfef, #ffb3ba);
+        }
+        
+        .btn:disabled {
+            background: linear-gradient(45deg, #d3d3d3, #f0f0f0);
+            cursor: not-allowed;
+            transform: none;
+            color: #999;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: rgba(255, 182, 193, 0.3);
+            border: 2px solid #ff9a9e;
+            color: #5a4a6a;
+        }
+        
+        .status.error {
+            background: rgba(255, 192, 203, 0.3);
+            border: 2px solid #ff69b4;
+            color: #5a4a6a;
+        }
+        
+        .status.info {
+            background: rgba(255, 182, 193, 0.2);
+            border: 2px solid #ffb6c1;
+            color: #5a4a6a;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 182, 193, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.1);
+        }
+        
+        .stat-item h3 {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .stat-item p {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 182, 193, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #5a4a6a;
+            font-size: 16px;
+            margin: 10px 0;
+            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.1);
+        }
+        
+        input[type="text"]::placeholder {
+            color: rgba(90, 74, 106, 0.6);
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #ff9a9e;
+            box-shadow: 0 4px 20px rgba(255, 182, 193, 0.3);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Dev3Pack NFT</h1>
+            <p>Built with Foundry by msjoedor</p>
+            <button class="btn" onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
+        </div>
+        
+        <div id="status" class="status hidden"></div>
+        
+        <div class="card">
+            <h2>📊 Contract Statistics</h2>
+            <div class="stats">
+                <div class="stat-item">
+                    <h3>Total Supply</h3>
+                    <p id="totalSupply">-</p>
+                </div>
+                <div class="stat-item">
+                    <h3>Max Supply</h3>
+                    <p id="maxSupply">-</p>
+                </div>
+                <div class="stat-item">
+                    <h3>Mint Price (ETH)</h3>
+                    <p id="mintPrice">-</p>
+                </div>
+                <div class="stat-item">
+                    <h3>Minting Active</h3>
+                    <p id="mintingActive">-</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>💰 Mint NFT</h2>
+            <label for="tokenURI">Token URI (Metadata URL):</label>
+            <input type="text" id="tokenURI" placeholder="https://dev3pack.com/nft/1" value="https://dev3pack.com/nft/1">
+            <button class="btn" onclick="mintNFT()">Mint NFT</button>
+            <button class="btn" onclick="loadStats()">Refresh Stats</button>
+        </div>
+        
+        <div class="card">
+            <h2>👤 My NFTs</h2>
+            <div id="nftList" class="loading">
+                <div class="spinner"></div>
+                <p>Loading your NFTs...</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>⚙️ Owner Functions</h2>
+            <button class="btn" onclick="toggleMinting()">Toggle Minting</button>
+            <button class="btn" onclick="withdraw()">Withdraw Funds</button>
+        </div>
+    </div>
+
+    <script>
+        // Contract configuration
+        const CONTRACT_ADDRESS = "0xdF0d3C25F41507c2d5528B6ad59067Cc2f716907"; // Sepolia deployed address
+        const CONTRACT_ABI = [
+            "function mintNFT(string memory _tokenURI) external payable",
+            "function getStats() external view returns (uint256, uint256, uint256, bool)",
+            "function toggleMinting() external",
+            "function withdraw() external",
+            "function owner() external view returns (address)",
+            "function maxSupply() external view returns (uint256)",
+            "function mintPrice() external view returns (uint256)",
+            "function mintingActive() external view returns (bool)"
+        ];
+        
+        let provider, signer, contract;
+        
+        // Simple ethers.js implementation
+        function createProvider() {
+            if (typeof window.ethereum !== 'undefined') {
+                return new ethers.providers.Web3Provider(window.ethereum);
+            }
+            throw new Error('MetaMask not found');
+        }
+        
+        function createContract(address, abi, signer) {
+            return new ethers.Contract(address, abi, signer);
+        }
+        
+        async function init() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        await connectToWallet();
+                    } else {
+                        showStatus("Click 'Connect Wallet' to get started!", "info");
+                    }
+                } catch (error) {
+                    console.error("Error checking MetaMask connection:", error);
+                    showStatus("Click 'Connect Wallet' to get started!", "info");
+                }
+            } else {
+                showStatus("Please install MetaMask to use this dApp!", "error");
+            }
+        }
+        
+        async function connectToWallet() {
+            try {
+                provider = createProvider();
+                signer = provider.getSigner();
+                contract = createContract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                
+                showStatus("Connected to MetaMask!", "success");
+                document.getElementById('connectBtn').style.display = 'none';
+                await loadStats();
+                await loadUserNFTs();
+            } catch (error) {
+                console.error("Error connecting to wallet:", error);
+                showStatus("Error connecting to wallet: " + error.message, "error");
+            }
+        }
+        
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    await connectToWallet();
+                } catch (error) {
+                    console.error("Error connecting to MetaMask:", error);
+                    showStatus("Please connect MetaMask and try again!", "error");
+                }
+            } else {
+                showStatus("Please install MetaMask to use this dApp!", "error");
+            }
+        }
+        
+        async function loadStats() {
+            if (!contract) {
+                showStatus("Please connect MetaMask first", "error");
+                return;
+            }
+            
+            try {
+                const [totalSupply, maxSupply, mintPrice, mintingActive] = await contract.getStats();
+                
+                document.getElementById('totalSupply').textContent = totalSupply.toString();
+                document.getElementById('maxSupply').textContent = maxSupply.toString();
+                document.getElementById('mintPrice').textContent = ethers.utils.formatEther(mintPrice);
+                document.getElementById('mintingActive').textContent = mintingActive ? "Yes" : "No";
+            } catch (error) {
+                console.error("Error loading stats:", error);
+                showStatus("Error loading contract stats", "error");
+            }
+        }
+        
+        async function mintNFT() {
+            if (!contract) {
+                showStatus("Please connect MetaMask first", "error");
+                return;
+            }
+            
+            const tokenURI = document.getElementById('tokenURI').value;
+            if (!tokenURI) {
+                showStatus("Please enter a token URI", "error");
+                return;
+            }
+            
+            try {
+                showStatus("Minting NFT...", "info");
+                const mintPrice = await contract.mintPrice();
+                const tx = await contract.mintNFT(tokenURI, { value: mintPrice });
+                showStatus("Transaction sent! Waiting for confirmation...", "info");
+                
+                await tx.wait();
+                showStatus("NFT minted successfully!", "success");
+                await loadStats();
+                await loadUserNFTs();
+            } catch (error) {
+                console.error("Error minting NFT:", error);
+                showStatus("Error minting NFT: " + error.message, "error");
+            }
+        }
+        
+        async function loadUserNFTs() {
+            if (!contract) {
+                document.getElementById('nftList').innerHTML = '<p>Please connect MetaMask to view your NFTs</p>';
+                return;
+            }
+            
+            try {
+                const nftList = document.getElementById('nftList');
+                nftList.innerHTML = '<p>SimpleNFT deployed! Mint your first NFT to see it here.</p>';
+            } catch (error) {
+                console.error("Error loading user NFTs:", error);
+                showStatus("Error loading your NFTs", "error");
+            }
+        }
+        
+        async function toggleMinting() {
+            if (!contract) {
+                showStatus("Please connect MetaMask first", "error");
+                return;
+            }
+            
+            try {
+                showStatus("Toggling minting...", "info");
+                const tx = await contract.toggleMinting();
+                await tx.wait();
+                showStatus("Minting status updated!", "success");
+                await loadStats();
+            } catch (error) {
+                console.error("Error toggling minting:", error);
+                showStatus("Error toggling minting: " + error.message, "error");
+            }
+        }
+        
+        async function withdraw() {
+            if (!contract) {
+                showStatus("Please connect MetaMask first", "error");
+                return;
+            }
+            
+            try {
+                showStatus("Withdrawing funds...", "info");
+                const tx = await contract.withdraw();
+                await tx.wait();
+                showStatus("Funds withdrawn successfully!", "success");
+            } catch (error) {
+                console.error("Error withdrawing funds:", error);
+                showStatus("Error withdrawing funds: " + error.message, "error");
+            }
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.classList.remove('hidden');
+            
+            setTimeout(() => {
+                status.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // Load ethers.js from multiple sources
+        function loadEthers() {
+            const scripts = [
+                'https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js',
+                'https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js',
+                'https://cdn.ethers.io/lib/ethers-5.7.umd.min.js'
+            ];
+            
+            let currentScript = 0;
+            
+            function tryNextScript() {
+                if (currentScript >= scripts.length) {
+                    showStatus("Error: Unable to load ethers.js from any CDN. Please check your internet connection.", "error");
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = scripts[currentScript];
+                script.onload = function() {
+                    console.log("Ethers.js loaded from:", scripts[currentScript]);
+                    init();
+                };
+                script.onerror = function() {
+                    console.log("Failed to load from:", scripts[currentScript]);
+                    currentScript++;
+                    tryNextScript();
+                };
+                document.head.appendChild(script);
+            }
+            
+            tryNextScript();
+        }
+        
+        // Start loading when page loads
+        window.addEventListener('load', loadEthers);
+    </script>
+</body>
+</html>
