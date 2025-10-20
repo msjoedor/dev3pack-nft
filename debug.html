@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev3Pack NFT - Debug Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #4ade80;
+            margin-bottom: 10px;
+        }
+        
+        .wallet-info {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .wallet-address {
+            font-family: monospace;
+            background: #1a1a1a;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+        
+        .wallet-balance {
+            color: #4ade80;
+            font-weight: bold;
+        }
+        
+        .contract-section {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .contract-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .contract-address {
+            font-family: monospace;
+            background: #1a1a1a;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+        
+        .contract-balance {
+            color: #4ade80;
+        }
+        
+        .function-section {
+            margin-bottom: 30px;
+        }
+        
+        .function-title {
+            color: #4ade80;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 5px;
+            border-left: 4px solid #4ade80;
+        }
+        
+        .function-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .function-item {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        
+        .function-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .function-value {
+            font-family: monospace;
+            color: #fff;
+            word-break: break-all;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #fff;
+            font-family: monospace;
+        }
+        
+        .btn {
+            background: #4ade80;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #22c55e;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #8b5cf6;
+            color: #fff;
+        }
+        
+        .btn-secondary:hover {
+            background: #7c3aed;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .status.success {
+            background: rgba(74, 222, 128, 0.2);
+            border: 1px solid #4ade80;
+            color: #4ade80;
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        .status.info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+        }
+        
+        .nft-item {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            margin-bottom: 10px;
+        }
+        
+        .nft-id {
+            color: #4ade80;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .nft-uri {
+            color: #888;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+        
+        .spinner {
+            border: 2px solid #444;
+            border-top: 2px solid #4ade80;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Dev3Pack NFT - Debug Interface</h1>
+            <p>Built with Foundry by msjoedor</p>
+        </div>
+        
+        <div id="status" class="status hidden"></div>
+        
+        <div class="wallet-info">
+            <div>
+                <strong>Wallet:</strong> <span id="walletAddress" class="wallet-address">Not Connected</span>
+            </div>
+            <div>
+                <strong>Balance:</strong> <span id="walletBalance" class="wallet-balance">0 ETH</span>
+            </div>
+            <div>
+                <button class="btn" onclick="connectWallet()" id="connectBtn">Connect MetaMask</button>
+            </div>
+        </div>
+        
+        <div class="contract-section">
+            <div class="contract-header">
+                <div>
+                    <strong>Dev3PackNFT Contract</strong>
+                </div>
+                <div>
+                    <span id="contractAddress" class="contract-address">0xdF0d3C25F41507c2d5528B6ad59067Cc2f716907</span>
+                </div>
+                <div>
+                    <strong>Balance:</strong> <span id="contractBalance" class="contract-balance">0 ETH</span>
+                </div>
+            </div>
+            
+            <div class="function-section">
+                <div class="function-title">📊 Contract Stats</div>
+                <div class="function-group">
+                    <div class="function-item">
+                        <div class="function-label">Total Supply</div>
+                        <div class="function-value" id="totalSupply">-</div>
+                    </div>
+                    <div class="function-item">
+                        <div class="function-label">Max Supply</div>
+                        <div class="function-value" id="maxSupply">-</div>
+                    </div>
+                    <div class="function-item">
+                        <div class="function-label">Mint Price</div>
+                        <div class="function-value" id="mintPrice">-</div>
+                    </div>
+                    <div class="function-item">
+                        <div class="function-label">Minting Active</div>
+                        <div class="function-value" id="mintingActive">-</div>
+                    </div>
+                    <div class="function-item">
+                        <div class="function-label">Owner</div>
+                        <div class="function-value" id="owner">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="function-section">
+                <div class="function-title">🎨 Mint NFT</div>
+                <div class="input-group">
+                    <label for="tokenURI">Token URI:</label>
+                    <input type="text" id="tokenURI" placeholder="https://dev3pack.com/nft/1" />
+                </div>
+                <button class="btn" onclick="mintNFT()">Mint NFT</button>
+                <button class="btn btn-secondary" onclick="loadStats()">Refresh Stats</button>
+            </div>
+            
+            <div class="function-section">
+                <div class="function-title">👤 My NFTs</div>
+                <div id="nftList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading your NFTs...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="function-section">
+                <div class="function-title">⚙️ Owner Functions</div>
+                <button class="btn btn-secondary" onclick="toggleMinting()">Toggle Minting</button>
+                <button class="btn btn-secondary" onclick="updateMintPrice()">Update Price</button>
+                <button class="btn btn-danger" onclick="emergencyPause()">Emergency Pause</button>
+                <button class="btn btn-secondary" onclick="withdraw()">Withdraw Funds</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Contract configuration
+        const CONTRACT_ADDRESS = "0xdF0d3C25F41507c2d5528B6ad59067Cc2f716907";
+        const CONTRACT_ABI = [
+            "function mintNFT(string memory _tokenURI) external payable",
+            "function getStats() external view returns (uint256, uint256, uint256, bool)",
+            "function toggleMinting() external",
+            "function withdraw() external",
+            "function owner() external view returns (address)",
+            "function maxSupply() external view returns (uint256)",
+            "function mintPrice() external view returns (uint256)",
+            "function mintingActive() external view returns (bool)"
+        ];
+        
+        let provider, signer, contract;
+        
+        async function init() {
+            if (typeof window.ethereum !== 'undefined') {
+                // Check if already connected
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        await connectToWallet();
+                    } else {
+                        showStatus("Click 'Connect MetaMask' to get started!", "info");
+                    }
+                } catch (error) {
+                    console.error("Error checking MetaMask connection:", error);
+                    showStatus("Click 'Connect MetaMask' to get started!", "info");
+                }
+            } else {
+                showStatus("Please install MetaMask to use this dApp!", "error");
+            }
+        }
+        
+        async function connectToWallet() {
+            try {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                
+                const address = await signer.getAddress();
+                const balance = await provider.getBalance(address);
+                
+                document.getElementById('walletAddress').textContent = address;
+                document.getElementById('walletBalance').textContent = ethers.utils.formatEther(balance) + ' ETH';
+                
+                const contractBalance = await provider.getBalance(CONTRACT_ADDRESS);
+                document.getElementById('contractBalance').textContent = ethers.utils.formatEther(contractBalance) + ' ETH';
+                
+                showStatus("Connected to MetaMask!", "success");
+                document.getElementById('connectBtn').style.display = 'none';
+                await loadStats();
+                await loadUserNFTs();
+            } catch (error) {
+                console.error("Error connecting to wallet:", error);
+                showStatus("Error connecting to wallet: " + error.message, "error");
+            }
+        }
+        
+        async function loadStats() {
+            try {
+                const [totalSupply, maxSupply, mintPrice, mintingActive] = await contract.getStats();
+                const owner = await contract.owner();
+                
+                document.getElementById('totalSupply').textContent = totalSupply.toString();
+                document.getElementById('maxSupply').textContent = maxSupply.toString();
+                document.getElementById('mintPrice').textContent = ethers.utils.formatEther(mintPrice) + ' ETH';
+                document.getElementById('mintingActive').textContent = mintingActive ? "Yes" : "No";
+                document.getElementById('owner').textContent = owner;
+            } catch (error) {
+                console.error("Error loading stats:", error);
+                showStatus("Error loading contract stats", "error");
+            }
+        }
+        
+        async function mintNFT() {
+            const tokenURI = document.getElementById('tokenURI').value;
+            if (!tokenURI) {
+                showStatus("Please enter a token URI", "error");
+                return;
+            }
+            
+            try {
+                showStatus("Minting NFT...", "info");
+                const mintPrice = await contract.mintPrice();
+                const tx = await contract.mintNFT(tokenURI, { value: mintPrice });
+                showStatus("Transaction sent! Waiting for confirmation...", "info");
+                
+                await tx.wait();
+                showStatus("NFT minted successfully!", "success");
+                
+                document.getElementById('tokenURI').value = '';
+                await loadStats();
+                await loadUserNFTs();
+            } catch (error) {
+                console.error("Error minting NFT:", error);
+                showStatus("Error minting NFT: " + error.message, "error");
+            }
+        }
+        
+        async function loadUserNFTs() {
+            try {
+                const userAddress = await signer.getAddress();
+                const tokenIds = await contract.getTokensByOwner(userAddress);
+                
+                const nftList = document.getElementById('nftList');
+                nftList.innerHTML = '';
+                
+                if (tokenIds.length === 0) {
+                    nftList.innerHTML = '<div class="loading"><p>No NFTs found. Mint your first NFT!</p></div>';
+                    return;
+                }
+                
+                for (const tokenId of tokenIds) {
+                    try {
+                        const nftData = await contract.getNFT(tokenId);
+                        const nftItem = document.createElement('div');
+                        nftItem.className = 'nft-item';
+                        nftItem.innerHTML = `
+                            <div class="nft-id">NFT #${tokenId.toString()}</div>
+                            <div class="nft-uri">URI: ${nftData.tokenURI}</div>
+                            <div style="margin-top: 5px; font-size: 0.8rem; color: #666;">
+                                Minted: ${new Date(nftData.mintedAt * 1000).toLocaleString()}
+                            </div>
+                        `;
+                        nftList.appendChild(nftItem);
+                    } catch (nftError) {
+                        console.error(`Error loading NFT ${tokenId}:`, nftError);
+                        const nftItem = document.createElement('div');
+                        nftItem.className = 'nft-item';
+                        nftItem.innerHTML = `
+                            <div class="nft-id">NFT #${tokenId.toString()}</div>
+                            <div class="nft-uri">Error loading NFT data</div>
+                        `;
+                        nftList.appendChild(nftItem);
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading user NFTs:", error);
+                const nftList = document.getElementById('nftList');
+                nftList.innerHTML = '<div class="loading"><p>Error loading NFTs. Try minting one first!</p></div>';
+            }
+        }
+        
+        async function toggleMinting() {
+            try {
+                const tx = await contract.toggleMinting();
+                await tx.wait();
+                showStatus("Minting status toggled!", "success");
+                await loadStats();
+            } catch (error) {
+                console.error("Error toggling minting:", error);
+                showStatus("Error toggling minting: " + error.message, "error");
+            }
+        }
+        
+        async function updateMintPrice() {
+            const newPrice = prompt("Enter new mint price in ETH:");
+            if (!newPrice) return;
+            
+            try {
+                const priceInWei = ethers.utils.parseEther(newPrice);
+                const tx = await contract.updateMintPrice(priceInWei);
+                await tx.wait();
+                showStatus("Mint price updated!", "success");
+                await loadStats();
+            } catch (error) {
+                console.error("Error updating mint price:", error);
+                showStatus("Error updating mint price: " + error.message, "error");
+            }
+        }
+        
+        async function emergencyPause() {
+            if (!confirm("Are you sure you want to pause minting?")) return;
+            
+            try {
+                const tx = await contract.emergencyPause();
+                await tx.wait();
+                showStatus("Emergency pause activated!", "success");
+                await loadStats();
+            } catch (error) {
+                console.error("Error pausing contract:", error);
+                showStatus("Error pausing contract: " + error.message, "error");
+            }
+        }
+        
+        async function withdraw() {
+            try {
+                const tx = await contract.withdraw();
+                await tx.wait();
+                showStatus("Funds withdrawn successfully!", "success");
+                await loadStats();
+            } catch (error) {
+                console.error("Error withdrawing funds:", error);
+                showStatus("Error withdrawing funds: " + error.message, "error");
+            }
+        }
+        
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    await connectToWallet();
+                } catch (error) {
+                    console.error("Error connecting to MetaMask:", error);
+                    showStatus("Please connect MetaMask and try again!", "error");
+                }
+            } else {
+                showStatus("Please install MetaMask to use this dApp!", "error");
+            }
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.classList.remove('hidden');
+            
+            setTimeout(() => {
+                status.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // Wait for ethers to load, then initialize
+        function waitForEthers() {
+            if (typeof ethers !== 'undefined') {
+                console.log('Ethers.js loaded successfully!');
+                init();
+            } else {
+                console.log('Waiting for ethers.js to load...');
+                setTimeout(waitForEthers, 100);
+            }
+        }
+        
+        // Add error handling for script loading
+        window.addEventListener('error', function(e) {
+            if (e.target.tagName === 'SCRIPT') {
+                console.error('Script loading error:', e);
+                showStatus("Error loading ethers.js library. Please refresh the page.", "error");
+            }
+        });
+        
+        // Initialize when page loads
+        window.addEventListener('load', waitForEthers);
+    </script>
+</body>
+</html>
