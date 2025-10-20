@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Setup - Dev3Pack</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #1e1e1e; 
+            color: #eee; 
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        button { 
+            padding: 15px 25px; 
+            margin: 10px 5px; 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px;
+        }
+        button:hover { background-color: #45a049; }
+        .network-info { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            background-color: #333; 
+        }
+        .status { 
+            margin: 10px 0; 
+            padding: 10px; 
+            border-radius: 5px; 
+        }
+        .success { background-color: #2d5a2d; border: 1px solid #4CAF50; }
+        .error { background-color: #5a2d2d; border: 1px solid #ff4444; }
+        .info { background-color: #2d4a5a; border: 1px solid #2196F3; }
+        .hidden { display: none; }
+        h1 { color: #4CAF50; }
+        h2 { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Network Setup</h1>
+        <p>This page will help you connect MetaMask to the correct local network.</p>
+        
+        <div class="network-info">
+            <h2>Local Network Details:</h2>
+            <p><strong>Network Name:</strong> Localhost 8545</p>
+            <p><strong>RPC URL:</strong> http://localhost:8545</p>
+            <p><strong>Chain ID:</strong> 31337</p>
+            <p><strong>Currency Symbol:</strong> ETH</p>
+        </div>
+
+        <button id="addNetworkBtn">Add Local Network to MetaMask</button>
+        <button id="checkConnectionBtn">Check Current Connection</button>
+        <button id="testContractBtn" style="display:none;">Test Contract Connection</button>
+        
+        <div id="status" class="status hidden"></div>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const LOCAL_NETWORK = {
+            chainId: '0x7a69', // 31337 in hex
+            chainName: 'Localhost 8545',
+            rpcUrls: ['http://localhost:8545'],
+            nativeCurrency: {
+                name: 'Ethereum',
+                symbol: 'ETH',
+                decimals: 18
+            },
+            blockExplorerUrls: null
+        };
+
+        const CONTRACT_ADDRESS = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
+
+        document.getElementById('addNetworkBtn').addEventListener('click', addLocalNetwork);
+        document.getElementById('checkConnectionBtn').addEventListener('click', checkConnection);
+        document.getElementById('testContractBtn').addEventListener('click', testContract);
+
+        async function addLocalNetwork() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [LOCAL_NETWORK]
+                    });
+                    showStatus('Local network added successfully!', 'success');
+                    setTimeout(checkConnection, 1000);
+                } catch (error) {
+                    showStatus('Error adding network: ' + error.message, 'error');
+                }
+            } else {
+                showStatus('Please install MetaMask!', 'error');
+            }
+        }
+
+        async function checkConnection() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    
+                    let status = '';
+                    if (chainId === '0x7a69') {
+                        status = '✅ Connected to correct local network!';
+                        document.getElementById('testContractBtn').style.display = 'inline-block';
+                    } else {
+                        status = `❌ Wrong network! Connected to chain ID: ${chainId}. Expected: 0x7a69`;
+                    }
+                    
+                    if (accounts.length > 0) {
+                        status += `\n✅ MetaMask connected with account: ${accounts[0]}`;
+                    } else {
+                        status += '\n⚠️ No MetaMask account connected';
+                    }
+                    
+                    showStatus(status, chainId === '0x7a69' ? 'success' : 'error');
+                } catch (error) {
+                    showStatus('Error checking connection: ' + error.message, 'error');
+                }
+            } else {
+                showStatus('Please install MetaMask!', 'error');
+            }
+        }
+
+        async function testContract() {
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, [
+                    "function getValue() external view returns (uint256)",
+                    "function getMessage() external view returns (string memory)"
+                ], provider);
+
+                const value = await contract.getValue();
+                const message = await contract.getMessage();
+
+                document.getElementById('results').innerHTML = `
+                    <h2>🎉 Contract Test Successful!</h2>
+                    <p><strong>Value:</strong> ${value.toString()}</p>
+                    <p><strong>Message:</strong> ${message}</p>
+                    <p><strong>Contract Address:</strong> ${CONTRACT_ADDRESS}</p>
+                `;
+                showStatus('Contract is working perfectly!', 'success');
+            } catch (error) {
+                showStatus('Contract test failed: ' + error.message, 'error');
+                console.error('Contract test error:', error);
+            }
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.classList.remove('hidden');
+        }
+
+        // Load ethers.js
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js';
+        script.onload = () => {
+            console.log('Ethers.js loaded');
+            checkConnection();
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>

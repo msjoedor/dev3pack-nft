@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MetaMask Test</title>
+</head>
+<body>
+    <h1>MetaMask Connection Test</h1>
+    <button id="connectBtn">Connect MetaMask</button>
+    <div id="status"></div>
+    
+    <script>
+        document.getElementById('connectBtn').onclick = async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    document.getElementById('status').innerHTML = `
+                        <h2>✅ Connected!</h2>
+                        <p>Account: ${accounts[0]}</p>
+                        <p>Network: ${await window.ethereum.request({ method: 'eth_chainId' })}</p>
+                    `;
+                } catch (error) {
+                    document.getElementById('status').innerHTML = `<h2>❌ Error: ${error.message}</h2>`;
+                }
+            } else {
+                document.getElementById('status').innerHTML = '<h2>❌ MetaMask not installed!</h2>';
+            }
+        };
+    </script>
+</body>
+</html>

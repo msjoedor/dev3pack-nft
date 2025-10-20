@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Contract Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+</head>
+<body>
+    <h1>Basic Contract Test</h1>
+    <button id="connectBtn">Connect MetaMask</button>
+    <button id="testBtn" style="display:none;">Test Basic Contract</button>
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <script>
+        const CONTRACT_ADDRESS = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
+        const CONTRACT_ABI = [
+            "function getValue() external view returns (uint256)",
+            "function getMessage() external view returns (string memory)",
+            "function setValue(uint256 _newValue) external"
+        ];
+        
+        let provider, signer, contract;
+        
+        document.getElementById('connectBtn').addEventListener('click', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                    
+                    document.getElementById('status').innerHTML = '✅ Connected!';
+                    document.getElementById('connectBtn').style.display = 'none';
+                    document.getElementById('testBtn').style.display = 'block';
+                } catch (error) {
+                    document.getElementById('status').innerHTML = '❌ Error: ' + error.message;
+                }
+            } else {
+                document.getElementById('status').innerHTML = '❌ Please install MetaMask!';
+            }
+        });
+        
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            try {
+                document.getElementById('results').innerHTML = 'Testing basic contract...';
+                
+                const value = await contract.getValue();
+                const message = await contract.getMessage();
+                
+                document.getElementById('results').innerHTML = `
+                    <h3>Basic Contract Test Results:</h3>
+                    <p><strong>Value:</strong> ${value.toString()}</p>
+                    <p><strong>Message:</strong> ${message}</p>
+                    <p style="color: green;">✅ Contract is working!</p>
+                `;
+            } catch (error) {
+                document.getElementById('results').innerHTML = '❌ Error testing contract: ' + error.message;
+                console.error('Contract test error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
